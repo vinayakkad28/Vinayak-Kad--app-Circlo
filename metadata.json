@@ -1,0 +1,7 @@
+{
+  "name": "Circlo: The Human Graph",
+  "description": "The trust-based network for dating,community. Connect with verified people found within your extended social tree.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
