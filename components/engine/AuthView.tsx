@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Stack, Button, Typography, Section, Card } from '../design-system/Primitives';
+import { Stack, Button, Typography, Section, Input } from '../design-system/Primitives';
 import { Logo } from '../brand/Logo';
 
 interface AuthViewProps {
@@ -8,69 +8,111 @@ interface AuthViewProps {
 }
 
 const AuthView: React.FC<AuthViewProps> = ({ onComplete }) => {
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'LOGIN' | 'SIGNUP'>('LOGIN');
+  const [credentials, setCredentials] = useState({
+    identifier: '',
+    password: '',
+    fullName: ''
+  });
 
-  const handleSocialAuth = (platform: string) => {
-    setLoading(platform);
-    // Simulate OAuth handshake
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    // Simulate authentication handshake with the vault
     setTimeout(() => {
       onComplete();
+      setLoading(false);
     }, 1500);
   };
 
+  const toggleMode = () => {
+    setMode(prev => prev === 'LOGIN' ? 'SIGNUP' : 'LOGIN');
+    setCredentials({ identifier: '', password: '', fullName: '' });
+  };
+
   return (
-    <Section className="flex-1 flex flex-col justify-center p-10 animate-fade-in">
+    <Section className="flex-1 flex flex-col justify-center p-10 bg-black">
       <Stack gap={16}>
-        <Stack gap={4} align="center">
-          <Logo size="lg" />
-          <Typography.Heading className="text-center">Start your path.</Typography.Heading>
-          <Typography.Subheading className="text-center">Connect your primary social node to build your trust graph.</Typography.Subheading>
+        <Stack gap={10} align="center">
+          <Logo size="lg" className="text-white" />
+          <div className="text-center space-y-4">
+            <Typography.Heading className="text-4xl">
+              {mode === 'LOGIN' ? 'Start your path.' : 'Create Node.'}
+            </Typography.Heading>
+            <Typography.Subheading className="max-w-[260px] mx-auto text-slate-500">
+              {mode === 'LOGIN' 
+                ? 'Access your private identity vault to continue.' 
+                : 'Establish a new identity node on the trust graph.'}
+            </Typography.Subheading>
+          </div>
         </Stack>
 
-        <Stack gap={4}>
-          <button 
-            onClick={() => handleSocialAuth('instagram')}
-            disabled={!!loading}
-            className="w-full py-6 flex items-center justify-between px-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-[2rem] text-sm font-black uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <i className="fab fa-instagram text-2xl"></i>
-              <span>Connect Instagram</span>
-            </div>
-            {loading === 'instagram' ? <i className="fas fa-circle-notch animate-spin"></i> : <i className="fas fa-chevron-right opacity-30 group-hover:opacity-100"></i>}
-          </button>
+        <form onSubmit={handleAuth}>
+          <Stack gap={4}>
+            {mode === 'SIGNUP' && (
+              <Input 
+                type="text"
+                placeholder="Full Name"
+                required
+                value={credentials.fullName}
+                onChange={(e) => setCredentials({...credentials, fullName: e.target.value})}
+              />
+            )}
+            <Input 
+              type="text"
+              placeholder="Username or Email"
+              required
+              value={credentials.identifier}
+              onChange={(e) => setCredentials({...credentials, identifier: e.target.value})}
+            />
+            <Input 
+              type="password"
+              placeholder="Password"
+              required
+              value={credentials.password}
+              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+            />
+            
+            {mode === 'LOGIN' && (
+              <div className="flex justify-end px-2">
+                <button 
+                  type="button"
+                  className="text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
 
-          <button 
-            onClick={() => handleSocialAuth('facebook')}
-            disabled={!!loading}
-            className="w-full py-6 flex items-center justify-between px-8 bg-[#1877f2] rounded-[2rem] text-sm font-black uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <i className="fab fa-facebook text-2xl"></i>
-              <span>Connect Facebook</span>
-            </div>
-            {loading === 'facebook' ? <i className="fas fa-circle-notch animate-spin"></i> : <i className="fas fa-chevron-right opacity-30 group-hover:opacity-100"></i>}
-          </button>
-        </Stack>
+            <Button 
+              isLoading={loading}
+              className="mt-4 w-full h-20 shadow-[0_40px_80px_-20px_rgba(255,255,255,0.05)]"
+            >
+              {mode === 'LOGIN' ? 'Establish Connection' : 'Register Identity'}
+            </Button>
+          </Stack>
+        </form>
 
-        <div className="relative py-4">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-900"></div></div>
-          <div className="relative flex justify-center text-[8px] uppercase font-black tracking-[0.3em] text-slate-700 bg-slate-950 px-4">Secure Identity Vault</div>
-        </div>
-
-        <Stack gap={6}>
-          <button 
-            onClick={() => handleSocialAuth('google')}
-            disabled={!!loading}
-            className="w-full py-5 flex items-center justify-center gap-3 bg-slate-900 border border-slate-800 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all text-slate-400"
-          >
-            <i className="fab fa-google"></i>
-            Continue with Google
-          </button>
+        <Stack gap={6} align="center">
+          <div className="flex items-center gap-3">
+            <Typography.Meta className="text-slate-700">
+              {mode === 'LOGIN' ? "New to the graph?" : "Already established?"}
+            </Typography.Meta>
+            <button 
+              onClick={toggleMode}
+              className="text-[10px] font-black uppercase tracking-widest text-white underline underline-offset-4 decoration-white/20 hover:decoration-white transition-all"
+            >
+              {mode === 'LOGIN' ? "Sign Up" : "Login"}
+            </button>
+          </div>
           
-          <Typography.Meta className="text-center opacity-30 px-6 leading-relaxed">
-            Circlo uses zero-knowledge mapping. <br/>We never store your social credentials or private content.
-          </Typography.Meta>
+          <div className="px-8 mt-4">
+            <Typography.Meta className="text-center opacity-10 leading-relaxed block normal-case tracking-normal text-[9px]">
+              Circlo utilize zero-knowledge identification nodes. <br/>
+              Your raw credentials are never indexed or persisted outside your local vault.
+            </Typography.Meta>
+          </div>
         </Stack>
       </Stack>
     </Section>
