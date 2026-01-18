@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { storage } from '../../services/storageService';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -17,6 +18,9 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
 
   const handleSync = () => {
     setSyncing(true);
+    // Persist to simulated backend
+    platforms.forEach(p => storage.syncPlatform(p));
+    
     setTimeout(() => {
       setSyncing(false);
       setStep(3);
@@ -50,14 +54,14 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-500">
             <div className="space-y-3">
               <h2 className="heading-lg">Identify your bridges.</h2>
-              <p className="text-slate-500 font-medium">Circlo maps trust connections, not personal data. Sync one platform to begin.</p>
+              <p className="text-slate-500 font-medium">Circlo maps trust connections, not personal data. Sync at least one platform.</p>
             </div>
 
             <div className="space-y-3">
               {[
-                { id: 'linkedin', icon: 'fa-linkedin', color: 'text-blue-600', label: 'LinkedIn' },
-                { id: 'instagram', icon: 'fa-instagram', color: 'text-pink-600', label: 'Instagram' },
-                { id: 'contacts', icon: 'fa-address-book', color: 'text-slate-600', label: 'Contacts' }
+                { id: 'LinkedIn', icon: 'fa-linkedin', color: 'text-blue-600', label: 'LinkedIn' },
+                { id: 'Instagram', icon: 'fa-instagram', color: 'text-pink-600', label: 'Instagram' },
+                { id: 'Contacts', icon: 'fa-address-book', color: 'text-slate-600', label: 'Contacts' }
               ].map(p => (
                 <button 
                   key={p.id}
@@ -98,7 +102,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) => {
             </div>
             <div className="space-y-6">
               <h2 className="text-5xl font-black tracking-tighter text-slate-900 leading-tight">Engine Ready.</h2>
-              <p className="text-xl font-medium text-slate-500 max-w-xs mx-auto">We've identified 3,420+ warm paths through your verified bridges.</p>
+              <p className="text-xl font-medium text-slate-500 max-w-xs mx-auto">We've identified 1,000+ warm paths through your verified bridges.</p>
             </div>
             <button onClick={onComplete} className="w-full py-6 bg-slate-900 text-white rounded-btn font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-all">Enter the Circle</button>
           </div>

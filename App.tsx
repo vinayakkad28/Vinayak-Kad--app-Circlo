@@ -1,13 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LoginScreen from './components/auth/LoginScreen';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import HomeScreen from './components/home/HomeScreen';
 import ProfileScreen from './components/profile/ProfileScreen';
 import MessagesScreen from './components/messages/MessagesScreen';
 import InviteModal from './components/InviteModal';
-import { User } from './types';
-import { MOCK_USER } from './constants';
+import { User, MatchProfile } from './types';
+import { storage } from './services/storageService';
 
 type AppView = 'login' | 'onboarding' | 'home' | 'messages' | 'profile';
 
@@ -19,8 +19,33 @@ const App: React.FC = () => {
     type: 'reach'
   });
 
+  useEffect(() => {
+    const savedUser = storage.getUser();
+    if (savedUser) {
+      setUser(savedUser);
+      // If user exists, skip login and go to home if onboarding was finished
+      const synced = storage.getSyncedPlatforms();
+      if (synced.length > 0) {
+        setView('home');
+      } else {
+        setView('onboarding');
+      }
+    }
+  }, []);
+
   const handleLogin = () => {
-    setUser(MOCK_USER);
+    // Initial mock user save
+    const initialUser: User = {
+      id: 'me',
+      name: 'Alex Johnson',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
+      bio: 'Product Designer in SF.',
+      location: 'San Francisco, CA',
+      trustScore: 88,
+      platforms: []
+    };
+    storage.saveUser(initialUser);
+    setUser(initialUser);
     setView('onboarding');
   };
 
@@ -32,6 +57,17 @@ const App: React.FC = () => {
     setInviteModal({ isOpen: true, type, data });
   };
 
+  const handleSendIntro = (match: MatchProfile, script: string) => {
+    storage.saveIntroRequest(match, script);
+    setView('messages');
+  };
+
+  const handleLogout = () => {
+    storage.clearAll();
+    setUser(null);
+    setView('login');
+  };
+
   const renderView = () => {
     switch (view) {
       case 'login':
@@ -39,7 +75,7 @@ const App: React.FC = () => {
       case 'onboarding':
         return <OnboardingFlow onComplete={handleOnboardingComplete} />;
       case 'home':
-        return <HomeScreen onNavigate={(v) => setView(v as AppView)} onOpenInvite={openInvite} />;
+        return <HomeScreen onNavigate={(v) => setView(v as AppView)} onOpenInvite={openInvite} onSendIntro={handleSendIntro} />;
       case 'messages':
         return <MessagesScreen onNavigate={(v) => setView(v as AppView)} />;
       case 'profile':
@@ -47,7 +83,7 @@ const App: React.FC = () => {
           <ProfileScreen 
             user={user!} 
             onNavigate={(v) => setView(v as AppView)} 
-            onLogout={() => setView('login')} 
+            onLogout={handleLogout} 
             onOpenInvite={openInvite}
           />
         );

@@ -10,9 +10,10 @@ import { IntentionMode, MatchProfile } from '../../types';
 interface HomeScreenProps {
   onNavigate: (v: string) => void;
   onOpenInvite: (type: 'path' | 'reach' | 'verify', data?: any) => void;
+  onSendIntro: (match: MatchProfile, script: string) => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSendIntro }) => {
   const [query, setQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
   const [activeIntention, setActiveIntention] = useState<IntentionMode>('Dating');
@@ -21,10 +22,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite }) => 
   const filteredMatches = useMemo(() => {
     const q = query.toLowerCase();
     return MOCK_MATCHES.filter(m => {
-      const matchesQuery = q ? (m.name.toLowerCase().includes(q) || m.bio.toLowerCase().includes(q)) : true;
+      const matchesQuery = q ? (
+        m.name.toLowerCase().includes(q) || 
+        m.bio.toLowerCase().includes(q) ||
+        m.interests.some(i => i.toLowerCase().includes(q))
+      ) : true;
       const matchesIntention = m.intentions.includes(activeIntention);
       return matchesQuery && matchesIntention;
-    }).slice(0, 10);
+    }).slice(0, 20); // Show top 20 for performance
   }, [query, activeIntention]);
 
   return (
@@ -64,7 +69,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite }) => 
                 <div className="relative group">
                   <input 
                     type="text" 
-                    placeholder="Search roles, interests, or friends..."
+                    placeholder="Search roles, companies, or bridges..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="w-full py-7 px-10 rounded-card bg-white border border-slate-100 focus:border-slate-900 transition-all font-bold text-lg shadow-xl outline-none"
@@ -89,10 +94,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite }) => 
 
               <div className="space-y-8">
                 <div className="flex items-center justify-between px-2">
-                  <h3 className="label-sm text-slate-400">Trusted {activeIntention} Paths</h3>
+                  <h3 className="label-sm text-slate-400">Trusted {activeIntention} Paths ({MOCK_MATCHES.filter(m => m.intentions.includes(activeIntention)).length})</h3>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Intelligence Live</span>
+                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">AI Paths Syncing</span>
                   </div>
                 </div>
                 
@@ -127,9 +132,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite }) => 
           user={MOCK_USER}
           onClose={() => setSelectedMatch(null)} 
           onSendMessage={(id, msg) => {
-            console.log("Requesting intro:", id, msg);
+            onSendIntro(selectedMatch, msg);
             setSelectedMatch(null);
-            onNavigate('messages');
           }}
         />
       )}
