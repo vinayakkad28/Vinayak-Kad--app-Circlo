@@ -25,9 +25,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
       const matchesQuery = q ? (
         m.name.toLowerCase().includes(q) || 
         m.bio.toLowerCase().includes(q) ||
-        m.interests.some(i => i.toLowerCase().includes(q))
+        (m.interests && m.interests.some(i => i.toLowerCase().includes(q)))
       ) : true;
-      const matchesIntention = m.intentions.includes(activeIntention);
+      const matchesIntention = m.intentions.includes(activeIntention as any);
       return matchesQuery && matchesIntention;
     }).slice(0, 20); // Show top 20 for performance
   }, [query, activeIntention]);
@@ -94,7 +94,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
 
               <div className="space-y-8">
                 <div className="flex items-center justify-between px-2">
-                  <h3 className="label-sm text-slate-400">Trusted {activeIntention} Paths ({MOCK_MATCHES.filter(m => m.intentions.includes(activeIntention)).length})</h3>
+                  <h3 className="label-sm text-slate-400">Trusted {activeIntention} Paths ({MOCK_MATCHES.filter(m => m.intentions.includes(activeIntention as any)).length})</h3>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                     <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">AI Paths Syncing</span>
@@ -124,7 +124,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
         )}
       </main>
 
-      <BottomNav active="home" onNavigate={onNavigate} />
+      <BottomNav activeView="home" onViewChange={onNavigate} />
 
       {selectedMatch && (
         <MatchDetails 

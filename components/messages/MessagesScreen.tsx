@@ -53,7 +53,7 @@ const MessagesScreen: React.FC<MessagesScreenProps> = ({ onNavigate }) => {
         </div>
       </main>
 
-      <BottomNav active="messages" onNavigate={onNavigate} />
+      <BottomNav activeView="messages" onViewChange={onNavigate} />
     </div>
   );
 };

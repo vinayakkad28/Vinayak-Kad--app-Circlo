@@ -1,55 +1,76 @@
 
+export type IntentType = 'MEET_NEW' | 'FIND_PEOPLE' | 'EXPLORE_GROUP' | 'CONVERSATION';
 export type IntentionMode = 'Dating' | 'Business' | 'Community' | 'Friendship';
-export type PlatformName = 'LinkedIn' | 'Instagram' | 'TikTok' | 'Snapchat' | 'Facebook' | 'X' | 'Contacts';
+export type Platform = 'instagram' | 'facebook' | 'x' | 'tiktok' | 'linkedin' | 'snapchat' | 'Contacts';
+
+// Added IntroIntelligence to types to be accessible by components
+export interface IntroIntelligence {
+  reasoning: string;
+  magic_script: string;
+  timing_guidance: string;
+  safety_status: 'Green' | 'Amber' | 'Red';
+  safety_check: string;
+}
 
 export interface User {
   id: string;
   name: string;
   avatar: string;
+  role: string;
+  company?: string;
   bio: string;
   location: string;
   trustScore: number;
+  // Added platforms to User type
   platforms: {
-    name: PlatformName;
+    name: string;
     connected: boolean;
     lastSynced?: string;
   }[];
 }
 
-export interface GraphNode {
+export interface Node {
   id: string;
   name: string;
   avatar: string;
   type: 'user' | 'friend' | 'match';
   degree: number;
-  intentions?: IntentionMode[];
+  intentions?: (IntentType | IntentionMode)[];
   strengthScore?: number;
   x?: number;
   y?: number;
-  fx?: number | null;
-  fy?: number | null;
 }
 
-export interface GraphLink {
-  source: string | GraphNode;
-  target: string | GraphNode;
+export interface Link {
+  source: string | Node;
+  target: string | Node;
   strength: number;
   recency: number;
 }
 
-export interface MatchProfile extends User {
-  age: number;
-  degree: number;
-  mutualFriends: string[];
+export interface MatchProfile {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  company?: string;
+  bio: string;
+  location: string;
+  trustScore: number;
   bridgeName: string;
   bridgeAvatar: string;
-  pathExplanation: string;
+  reasoning: string;
+  intentions: (IntentType | IntentionMode)[];
+  sharedContext: string;
   compatibilityScore: number;
-  strengthScore: number;
+  // Extended fields for path visualization and bridge intel
+  age?: number;
+  degree?: number;
   pathStrengthScore?: number;
   overallScore?: number;
-  interests: string[];
-  intentions: IntentionMode[];
+  mutualFriends?: string[];
+  pathExplanation?: string;
+  interests?: string[];
 }
 
 export interface Conversation {
@@ -59,14 +80,12 @@ export interface Conversation {
   matchAvatar: string;
   lastMessage: string;
   timestamp: string;
-  unread: boolean;
+  status: 'PENDING' | 'ACTIVE';
+  // Added unread to support messaging list indicators
+  unread?: boolean;
 }
 
-export interface IntroIntelligence {
-  reasoning: string;
-  magic_script: string;
-  timing_guidance: string;
-  safety_status: 'Green' | 'Amber' | 'Red';
-  safety_check: string;
-  talking_points: string[];
+export interface SyncState {
+  platforms: string[];
+  lastSynced: string | null;
 }

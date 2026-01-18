@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { GRAPH_DATA } from '../constants';
-import { GraphNode, IntentionMode } from '../types';
+import { Node, IntentionMode } from '../types';
 
 interface SocialTreeProps {
   onNodeClick: (nodeId: string) => void;
@@ -19,8 +19,8 @@ const SocialTree: React.FC<SocialTreeProps> = ({ onNodeClick, activeMode }) => {
     const width = 800;
     const height = 800;
 
-    const filteredNodes = GRAPH_DATA.nodes.filter(n => 
-      n.id === 'me' || n.type === 'friend' || (n.intentions && n.intentions.includes(activeMode))
+    const filteredNodes = GRAPH_DATA.nodes.filter((n: Node) => 
+      n.id === 'me' || n.type === 'friend' || (n.intentions && n.intentions.includes(activeMode as any))
     );
     const nodeIds = new Set(filteredNodes.map(n => n.id));
     const filteredLinks = GRAPH_DATA.links.filter(l => 

@@ -1,0 +1,29 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #020617;
+  --text-primary: #f8fafc;
+  --indigo-accent: #6366f1;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.calm-gradient {
+  background: radial-gradient(circle at 50% -20%, rgba(99, 102, 241, 0.08) 0%, rgba(2, 6, 23, 0) 60%);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::selection {
+  background-color: rgba(99, 102, 241, 0.3);
+  color: white;
+}

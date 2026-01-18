@@ -1,32 +1,35 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { MatchProfile, IntroIntelligence } from "../types";
+import { MatchProfile, IntroIntelligence, User } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export async function getIntroIntelligence(user: any, match: MatchProfile): Promise<IntroIntelligence> {
+export async function getIntroIntelligence(user: User, match: MatchProfile): Promise<IntroIntelligence> {
   try {
-    const prompt = `You are the Circlo Intro Architect. Your goal is to find the most ethical and effective way for Alex (User) to meet ${match.name}.
-
+    const prompt = `Act as the Circlo Introduction Engine, a high-trust verification system.
+    
+    Task: Analyze the trust bridge between ${user.name} and ${match.name} and provide a systems-level reasoning for the introduction.
+    
     Context:
-    - User: Alex (Product Designer, SF)
-    - Target: ${match.name} (${match.bio})
-    - Bridge Person: ${match.bridgeName}
-    - Intention: ${match.intentions[0]}
+    - User: ${user.name} (${user.role})
+    - Target: ${match.name} (${match.role} @ ${match.company})
+    - Bridge: ${match.bridgeName}
+    - Shared Context: ${match.sharedContext}
 
-    Rules:
-    - NO direct cold outreach. Always use ${match.bridgeName} as the primary channel.
-    - Focus on "Safety Check": Assess if the connection is logically sound or high-risk.
-    - "Magic Script": Write a message for Alex to send to ${match.bridgeName}, NOT to ${match.name}.
+    Guidelines:
+    1. Reasoning must be exactly 1-2 human, systems-thinking sentences.
+    2. Magic Script is a message Alex sends to ${match.bridgeName} asking for an introduction. It should be calm, respectful, and high-trust.
+    3. Timing guidance should be concise and strategic.
+    4. Safety Check evaluates the risk of the intro.
+    5. Safety Status must be "Green", "Amber", or "Red".
 
-    Return valid JSON:
+    Return JSON:
     {
-      "reasoning": "2-sentence why this bridge is logically strong based on shared history",
-      "magic_script": "warm, respectful message Alex can send to his bridge person",
-      "timing_guidance": "1-sentence on when it's best to ask",
-      "safety_status": "Green|Amber|Red",
-      "safety_check": "Detailed 1-sentence assessment of risk/safety",
-      "talking_points": ["point 1", "point 2", "point 3"]
+      "reasoning": "string",
+      "magic_script": "string",
+      "timing_guidance": "string",
+      "safety_status": "Green" | "Amber" | "Red",
+      "safety_check": "string"
     }`;
 
     const response = await ai.models.generateContent({
@@ -40,29 +43,23 @@ export async function getIntroIntelligence(user: any, match: MatchProfile): Prom
             reasoning: { type: Type.STRING },
             magic_script: { type: Type.STRING },
             timing_guidance: { type: Type.STRING },
-            safety_status: { type: Type.STRING },
-            safety_check: { type: Type.STRING },
-            talking_points: { type: Type.ARRAY, items: { type: Type.STRING } }
+            safety_status: { type: Type.STRING, enum: ["Green", "Amber", "Red"] },
+            safety_check: { type: Type.STRING }
           },
-          required: ["reasoning", "magic_script", "timing_guidance", "safety_status", "safety_check", "talking_points"]
+          required: ["reasoning", "magic_script", "timing_guidance", "safety_status", "safety_check"]
         }
       }
     });
 
-    const parsed = JSON.parse(response.text);
-    return {
-      ...parsed,
-      safety_status: ['Green', 'Amber', 'Red'].includes(parsed.safety_status) ? parsed.safety_status : 'Green'
-    };
+    return JSON.parse(response.text);
   } catch (error) {
-    console.error("AI Error, using fallback:", error);
+    console.error("Engine failure, using backup logic:", error);
     return {
-      reasoning: `Shared professional context through your bridge, ${match.bridgeName}.`,
-      magic_script: `Hey ${match.bridgeName}! I saw you're connected to ${match.name.split(' ')[0]}. Since we're all in the same circle, would you be comfortable introducing us?`,
-      timing_guidance: "A casual afternoon check-in is best.",
+      reasoning: `Verified shared context within the ${match.company} alumni network via ${match.bridgeName}.`,
+      magic_script: `Hi ${match.bridgeName}, I noticed you're connected to ${match.name.split(' ')[0]}. Given our shared context in ${match.role.toLowerCase()} circles, would you be comfortable introducing us?`,
+      timing_guidance: "Casual mid-week outreach is recommended for highest response signal.",
       safety_status: "Green",
-      safety_check: "Verified second-degree link with recent bridge activity.",
-      talking_points: ["Shared professional history", "Mutual circles", "Community interests"]
+      safety_check: "Low-risk high-trust professional bridge verified."
     };
   }
 }

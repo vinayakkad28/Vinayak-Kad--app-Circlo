@@ -86,7 +86,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, onNavigate, onLogou
         </div>
       </main>
 
-      <BottomNav active="profile" onNavigate={onNavigate} />
+      <BottomNav activeView="profile" onViewChange={onNavigate} />
     </div>
   );
 };

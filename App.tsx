@@ -1,107 +1,81 @@
 
 import React, { useState, useEffect } from 'react';
-import LoginScreen from './components/auth/LoginScreen';
-import OnboardingFlow from './components/onboarding/OnboardingFlow';
-import HomeScreen from './components/home/HomeScreen';
-import ProfileScreen from './components/profile/ProfileScreen';
-import MessagesScreen from './components/messages/MessagesScreen';
-import InviteModal from './components/InviteModal';
-import { User, MatchProfile } from './types';
 import { storage } from './services/storageService';
+import HeroView from './components/engine/HeroView';
+import IntentLayer from './components/engine/IntentLayer';
+import SignalLayer from './components/engine/SignalLayer';
+import IntroductionView from './components/engine/IntroductionView';
+import MessagesView from './components/engine/MessagesView';
+import ProfileView from './components/engine/ProfileView';
+import BottomNav from './components/shared/BottomNav';
+import { User, IntentType, MatchProfile } from './types';
 
-type AppView = 'login' | 'onboarding' | 'home' | 'messages' | 'profile';
+type ViewState = 'HERO' | 'INTENT' | 'SIGNAL' | 'RESULT' | 'MESSAGES' | 'PROFILE';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<AppView>('login');
+  const [view, setView] = useState<ViewState>('HERO');
   const [user, setUser] = useState<User | null>(null);
-  const [inviteModal, setInviteModal] = useState<{ isOpen: boolean; type: 'path' | 'reach' | 'verify'; data?: any }>({
-    isOpen: false,
-    type: 'reach'
-  });
+  const [activeIntent, setActiveIntent] = useState<IntentType | null>(null);
+  const [currentIntro, setCurrentIntro] = useState<MatchProfile | null>(null);
 
   useEffect(() => {
     const savedUser = storage.getUser();
     if (savedUser) {
       setUser(savedUser);
-      // If user exists, skip login and go to home if onboarding was finished
-      const synced = storage.getSyncedPlatforms();
-      if (synced.length > 0) {
-        setView('home');
-      } else {
-        setView('onboarding');
-      }
+      // If user exists, go straight to engine if not on hero
     }
   }, []);
 
-  const handleLogin = () => {
-    // Initial mock user save
-    const initialUser: User = {
+  const handleStart = () => {
+    const initialUser = {
       id: 'me',
       name: 'Alex Johnson',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
-      bio: 'Product Designer in SF.',
-      location: 'San Francisco, CA',
-      trustScore: 88,
-      platforms: []
+      role: 'Product Designer',
+      avatar: 'https://i.pravatar.cc/150?u=me',
+      bio: 'Exploring systems of human connection.',
+      location: 'SF / Remote',
+      trustScore: 92
     };
     storage.saveUser(initialUser);
     setUser(initialUser);
-    setView('onboarding');
+    setView('INTENT');
   };
 
-  const handleOnboardingComplete = () => {
-    setView('home');
+  const selectIntent = (intent: IntentType) => {
+    setActiveIntent(intent);
+    setView('SIGNAL');
   };
 
-  const openInvite = (type: 'path' | 'reach' | 'verify', data?: any) => {
-    setInviteModal({ isOpen: true, type, data });
+  const handleSignalSubmit = (intro: MatchProfile) => {
+    setCurrentIntro(intro);
+    setView('RESULT');
   };
 
-  const handleSendIntro = (match: MatchProfile, script: string) => {
-    storage.saveIntroRequest(match, script);
-    setView('messages');
-  };
-
-  const handleLogout = () => {
-    storage.clearAll();
-    setUser(null);
-    setView('login');
+  const handleIntroAction = (intro: MatchProfile, script: string) => {
+    storage.saveIntroRequest(intro, script);
+    setView('MESSAGES');
   };
 
   const renderView = () => {
     switch (view) {
-      case 'login':
-        return <LoginScreen onLogin={handleLogin} />;
-      case 'onboarding':
-        return <OnboardingFlow onComplete={handleOnboardingComplete} />;
-      case 'home':
-        return <HomeScreen onNavigate={(v) => setView(v as AppView)} onOpenInvite={openInvite} onSendIntro={handleSendIntro} />;
-      case 'messages':
-        return <MessagesScreen onNavigate={(v) => setView(v as AppView)} />;
-      case 'profile':
-        return (
-          <ProfileScreen 
-            user={user!} 
-            onNavigate={(v) => setView(v as AppView)} 
-            onLogout={handleLogout} 
-            onOpenInvite={openInvite}
-          />
-        );
-      default:
-        return <LoginScreen onLogin={handleLogin} />;
+      case 'HERO': return <HeroView onStart={handleStart} />;
+      case 'INTENT': return <IntentLayer onSelect={selectIntent} />;
+      case 'SIGNAL': return <SignalLayer intent={activeIntent!} onSubmit={handleSignalSubmit} />;
+      case 'RESULT': return <IntroductionView intro={currentIntro!} onAction={handleIntroAction} onReset={() => setView('INTENT')} />;
+      case 'MESSAGES': return <MessagesView />;
+      case 'PROFILE': return <ProfileView user={user!} onLogout={() => { storage.clearAll(); setView('HERO'); }} />;
+      default: return <HeroView onStart={handleStart} />;
     }
   };
 
   return (
-    <div className="min-h-screen max-w-lg mx-auto bg-[#FAFBFF] shadow-2xl overflow-hidden relative flex flex-col border-x border-slate-100">
-      {renderView()}
-      
-      <InviteModal 
-        isOpen={inviteModal.isOpen} 
-        type={inviteModal.type} 
-        data={inviteModal.data} 
-        onClose={() => setInviteModal(prev => ({ ...prev, isOpen: false }))} 
-      />
+    <div className="min-h-screen max-w-lg mx-auto bg-slate-950 shadow-2xl overflow-hidden relative flex flex-col border-x border-slate-900 selection:bg-indigo-500/30">
+      <main className="flex-1 flex flex-col">
+        {renderView()}
+      </main>
+      {view !== 'HERO' && view !== 'INTENT' && view !== 'SIGNAL' && (
+        <BottomNav activeView={view} onViewChange={setView} />
+      )}
     </div>
   );
 };

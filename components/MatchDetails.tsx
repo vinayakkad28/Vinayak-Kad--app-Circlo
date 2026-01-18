@@ -22,7 +22,7 @@ const MatchDetails: React.FC<MatchDetailsProps> = ({ match, user, onClose, onSen
       setLoading(false);
     }
     load();
-  }, [match]);
+  }, [match, user]);
 
   const safetyColor = intel?.safety_status === 'Green' ? 'text-emerald-500' : 
                       intel?.safety_status === 'Amber' ? 'text-orange-500' : 'text-red-500';

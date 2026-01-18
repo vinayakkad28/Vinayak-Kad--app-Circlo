@@ -2,29 +2,28 @@
 import React from 'react';
 
 interface BottomNavProps {
-  active: 'home' | 'messages' | 'profile';
-  onNavigate: (v: string) => void;
+  activeView: string;
+  onViewChange: (view: any) => void;
 }
 
-const BottomNav: React.FC<BottomNavProps> = ({ active, onNavigate }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ activeView, onViewChange }) => {
   return (
-    <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 px-10 py-5 rounded-btn bg-slate-900 text-white shadow-2xl flex items-center gap-14 z-40 transition-all active:scale-95">
+    <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-sm px-10 py-5 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 text-white shadow-2xl flex items-center justify-between z-40 transition-all active:scale-95">
       <button 
-        onClick={() => onNavigate('home')}
-        className={`text-2xl transition-all ${active === 'home' ? 'scale-110' : 'opacity-40'}`}
+        onClick={() => onViewChange('INTENT')}
+        className={`text-xl transition-all ${activeView === 'INTENT' || activeView === 'SIGNAL' || activeView === 'RESULT' ? 'text-indigo-400 scale-110' : 'text-slate-600'}`}
       >
-        <i className="fas fa-search"></i>
+        <i className="fas fa-bolt"></i>
       </button>
       <button 
-        onClick={() => onNavigate('messages')}
-        className={`text-2xl relative transition-all ${active === 'messages' ? 'scale-110' : 'opacity-40'}`}
+        onClick={() => onViewChange('MESSAGES')}
+        className={`text-xl transition-all ${activeView === 'MESSAGES' ? 'text-indigo-400 scale-110' : 'text-slate-600'}`}
       >
-        <i className="fas fa-paper-plane"></i>
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900"></div>
+        <i className="fas fa-link"></i>
       </button>
       <button 
-        onClick={() => onNavigate('profile')}
-        className={`text-2xl transition-all ${active === 'profile' ? 'scale-110' : 'opacity-40'}`}
+        onClick={() => onViewChange('PROFILE')}
+        className={`text-xl transition-all ${activeView === 'PROFILE' ? 'text-indigo-400 scale-110' : 'text-slate-600'}`}
       >
         <i className="fas fa-fingerprint"></i>
       </button>
