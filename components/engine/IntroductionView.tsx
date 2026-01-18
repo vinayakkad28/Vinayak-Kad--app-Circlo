@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { MatchProfile, IntroIntelligence } from '../../types';
-import { getIntroIntelligence } from '../../services/geminiService';
+import { MatchProfile, IntroIntelligence, SocialInsight, MapInsight } from '../../types';
+import { getIntroIntelligence, getSocialContext, getMapsContext } from '../../services/geminiService';
 import { MOCK_USER } from '../../constants';
+import { Stack, Typography, Section, Button, Card } from '../design-system/Primitives';
 
 interface IntroductionViewProps {
   intro: MatchProfile;
@@ -13,98 +14,140 @@ interface IntroductionViewProps {
 const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, onReset }) => {
   const [loading, setLoading] = useState(true);
   const [intel, setIntel] = useState<IntroIntelligence | null>(null);
+  const [insight, setInsight] = useState<SocialInsight | null>(null);
+  const [mapInsight, setMapInsight] = useState<MapInsight | null>(null);
 
   useEffect(() => {
-    const fetchIntel = async () => {
+    const fetchAll = async () => {
       setLoading(true);
-      const data = await getIntroIntelligence(MOCK_USER, intro);
-      setIntel(data);
+      const [intelData, insightData, mapData] = await Promise.all([
+        getIntroIntelligence(MOCK_USER, intro),
+        getSocialContext(intro),
+        getMapsContext(intro)
+      ]);
+      setIntel(intelData);
+      setInsight(insightData);
+      setMapInsight(mapData);
       setLoading(false);
     };
-    fetchIntel();
+    fetchAll();
   }, [intro]);
 
   return (
-    <div className="flex-1 flex flex-col p-8 animate-fade-in overflow-y-auto no-scrollbar pb-32 max-w-md mx-auto">
-      <header className="mb-12 mt-4 space-y-2 text-center">
-        <h2 className="text-4xl font-black tracking-tight text-white">Suggested Connection.</h2>
-      </header>
+    <Section className="flex-1 flex flex-col p-8 animate-fade-in overflow-y-auto no-scrollbar pb-40">
+      <Stack gap={12}>
+        <Typography.Heading className="text-center">Vibe Verified.</Typography.Heading>
 
-      <div className="space-y-12">
-        {/* Recommendation Hero */}
-        <div className="p-1 rounded-[3.5rem] bg-gradient-to-br from-indigo-500/30 to-slate-800 shadow-3xl">
-          <div className="bg-slate-950 rounded-[3.4rem] p-10 space-y-10 relative overflow-hidden group">
-            <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/5 rounded-full blur-3xl"></div>
-            
-            <div className="flex flex-col items-center text-center gap-6 relative z-10">
-              <img src={intro.avatar} className="w-32 h-32 rounded-[3rem] object-cover border-4 border-slate-900 shadow-2xl" alt={intro.name} />
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black text-white leading-tight">{intro.name}</h3>
-                <p className="text-indigo-400 font-bold uppercase text-[10px] tracking-[0.3em]">{intro.role} • {intro.company}</p>
+        <Card className="relative overflow-hidden">
+          <Stack gap={8} align="center">
+            <div className="relative">
+              <img 
+                src={intro.avatar} 
+                className="w-32 h-32 rounded-[3rem] object-cover border-4 border-slate-900 shadow-2xl" 
+                alt="" 
+              />
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
+                <i className="fas fa-bolt"></i>
               </div>
             </div>
 
-            <p className="text-xl text-slate-300 font-medium leading-relaxed italic text-center px-4">
-              "{intro.bio}"
-            </p>
+            <Stack gap={2} align="center">
+              <Typography.Subheading className="text-white text-2xl">{intro.name}</Typography.Subheading>
+              <Typography.Meta className="text-indigo-400">{intro.role} • {intro.education}</Typography.Meta>
+              <Typography.Meta className="text-slate-500 normal-case tracking-normal">WORK: {intro.work}</Typography.Meta>
+            </Stack>
 
-            <div className="pt-8 border-t border-slate-900 flex flex-col items-center gap-4">
-               <div className="flex items-center gap-3 py-2 px-5 bg-slate-900 rounded-full border border-slate-800">
-                  <img src={intro.bridgeAvatar} className="w-6 h-6 rounded-lg opacity-80" />
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verified via {intro.bridgeName}</span>
-               </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {intro.interests.map((t, i) => (
+                <span key={i} className="text-[8px] font-black uppercase text-slate-500 border border-slate-800 px-2 py-1 rounded-md">
+                  {t}
+                </span>
+              ))}
             </div>
-          </div>
-        </div>
 
-        {/* Confidence Section */}
-        <section className="space-y-8">
-           <div className="px-4 space-y-10">
-              {loading ? (
-                <div className="animate-pulse space-y-6">
-                  <div className="h-6 bg-slate-800 rounded-full w-full"></div>
-                  <div className="h-24 bg-slate-800 rounded-3xl w-full"></div>
+            <Typography.Body className="text-center italic px-4">
+              "{intro.bio}"
+            </Typography.Body>
+          </Stack>
+        </Card>
+
+        {loading ? (
+          <Stack gap={6} className="animate-pulse px-4">
+            <div className="h-4 bg-slate-800 rounded-full w-full"></div>
+            <div className="h-24 bg-slate-800 rounded-3xl w-full"></div>
+            <div className="h-24 bg-slate-800 rounded-3xl w-full"></div>
+          </Stack>
+        ) : (
+          <Stack gap={10} className="px-4">
+            {/* Search Grounded Insights */}
+            {insight && insight.sources.length > 0 && (
+              <Stack gap={4}>
+                <div className="flex items-center justify-between">
+                  <Typography.Meta>Live Social Context</Typography.Meta>
+                  <span className="text-[8px] text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">Search Grounded</span>
                 </div>
-              ) : (
-                <>
-                  <div className="space-y-4">
-                    <p className="text-xl font-bold text-slate-200 leading-snug">
-                      {intel?.reasoning}
-                    </p>
-                    <p className="text-sm font-medium text-emerald-400">
-                      <i className="fas fa-check-circle mr-2"></i>
-                      {intel?.confidence_statement}
-                    </p>
+                <Card variant="glass" className="p-6">
+                  <Typography.Body className="text-slate-300 text-xs mb-4">{insight.text}</Typography.Body>
+                  <div className="flex flex-wrap gap-3">
+                    {insight.sources.map((s, i) => (
+                      <a key={i} href={s.uri} target="_blank" rel="noreferrer" className="text-[9px] text-indigo-400 hover:underline flex items-center gap-1">
+                        <i className="fas fa-link"></i> {s.title}
+                      </a>
+                    ))}
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="p-8 rounded-[2.5rem] bg-slate-900/50 border border-slate-800 space-y-4">
-                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Message for {intro.bridgeName}</p>
-                      <p className="text-sm font-medium italic text-slate-400 leading-relaxed">
-                        "{intel?.magic_script}"
-                      </p>
-                    </div>
+                </Card>
+              </Stack>
+            )}
 
-                    <button 
-                      onClick={() => onAction(intro, intel?.magic_script!)}
-                      className="w-full py-7 bg-slate-100 text-slate-950 rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-white active:scale-95 transition-all shadow-xl"
-                    >
-                      Connect with confidence
-                    </button>
-                  </div >
-                </>
-              )}
-           </div>
-        </section>
+            {/* Maps Grounded Insights */}
+            {mapInsight && mapInsight.places.length > 0 && (
+              <Stack gap={4}>
+                <div className="flex items-center justify-between">
+                  <Typography.Meta>Meeting Spots Nearby</Typography.Meta>
+                  <span className="text-[8px] text-blue-500 bg-blue-500/10 px-2 py-1 rounded">Maps Grounded</span>
+                </div>
+                <Card variant="glass" className="p-6">
+                  <Typography.Body className="text-slate-300 text-xs mb-4">{mapInsight.text}</Typography.Body>
+                  <div className="grid grid-cols-1 gap-3">
+                    {mapInsight.places.map((p, i) => (
+                      <a key={i} href={p.uri} target="_blank" rel="noreferrer" className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[10px] text-slate-300 flex items-center justify-between hover:bg-slate-900 transition-all">
+                        <span>{p.title}</span>
+                        <i className="fas fa-map-pin text-rose-500"></i>
+                      </a>
+                    ))}
+                  </div>
+                </Card>
+              </Stack>
+            )}
 
-        <button 
-          onClick={onReset}
-          className="w-full py-4 text-slate-700 font-black text-[10px] uppercase tracking-widest hover:text-white transition-colors"
-        >
-          Try a different focus
-        </button>
-      </div>
-    </div>
+            <Stack gap={4}>
+              <Typography.Subheading className="text-slate-200">
+                {intel?.reasoning}
+              </Typography.Subheading>
+              <div className="flex items-center gap-2 text-emerald-400">
+                <i className="fas fa-check-circle"></i>
+                <Typography.Meta className="text-emerald-400">{intel?.confidence_statement}</Typography.Meta>
+              </div>
+            </Stack>
+
+            <Stack gap={6}>
+              <Card variant="glass" className="p-6">
+                <Typography.Meta className="mb-4 block">Bridge Script for {intro.bridgeName}</Typography.Meta>
+                <Typography.Body className="italic text-slate-300">"{intel?.magic_script}"</Typography.Body>
+              </Card>
+
+              <Button onClick={() => onAction(intro, intel?.magic_script!)} variant="primary">
+                Trigger Introduction
+              </Button>
+            </Stack>
+          </Stack>
+        )}
+
+        <Button onClick={onReset} variant="subtle" className="mx-auto">
+          Explore the Graph
+        </Button>
+      </Stack>
+    </Section>
   );
 };
 

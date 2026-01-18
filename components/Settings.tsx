@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
-import { User, IntentionMode } from '../types';
+import { User } from '../types';
+// Corrected: IntentionMode is defined in types/index.ts
+import { IntentionMode } from '../types/index';
 import InsightCard from './InsightCard';
 
 interface SettingsProps {

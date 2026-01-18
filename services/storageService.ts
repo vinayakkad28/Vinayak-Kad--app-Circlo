@@ -19,7 +19,6 @@ export const storage = {
     const exists = current.find(r => r.matchId === match.id);
     if (exists) return;
 
-    // Fix: Added missing status property to satisfy Conversation type
     const newRequest: Conversation = {
       id: `conv-${Date.now()}`,
       matchId: match.id,
@@ -48,6 +47,10 @@ export const storage = {
   getSyncedPlatforms: (): string[] => {
     const data = localStorage.getItem(KEYS.SYNCED_PLATFORMS);
     return data ? JSON.parse(data) : [];
+  },
+
+  clearSyncedPlatforms: () => {
+    localStorage.removeItem(KEYS.SYNCED_PLATFORMS);
   },
 
   clearAll: () => {

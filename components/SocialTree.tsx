@@ -1,8 +1,10 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { GRAPH_DATA } from '../constants';
-import { Node, IntentionMode } from '../types';
+// Corrected: GRAPH_DATA is exported from utils/constants.ts
+import { GRAPH_DATA } from '../utils/constants';
+// Corrected: Node and IntentionMode are defined in types/index.ts
+import { Node, IntentionMode } from '../types/index';
 
 interface SocialTreeProps {
   onNodeClick: (nodeId: string) => void;

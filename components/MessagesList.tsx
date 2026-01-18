@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Conversation } from '../types';
+// Corrected: Conversation is defined in types/index.ts
+import { Conversation } from '../types/index';
 
 interface MessagesListProps {
   conversations: Conversation[];

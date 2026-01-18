@@ -1,50 +1,40 @@
 
-export type IntentType = 'NEW_PEER' | 'BUILDER_CIRCLE' | 'MEANINGFUL_CONVO' | 'EXPLORE_NEW' | 'Dating' | 'Business' | 'Community' | 'Friendship';
-// Added IntentionMode as an alias for IntentType for component compatibility
-export type IntentionMode = IntentType;
+export type IntentType = 'ROMANTIC_SOUL' | 'CASUAL_SPARK' | 'PEER_MIND' | 'CREATIVE_ALLIED' | 'EXPLORE_NEW';
 
 export interface User {
   id: string;
   name: string;
   avatar: string;
   role: string;
+  work: string;
   company?: string;
   bio: string;
   location: string;
+  education: string;
+  hobbies: string[];
+  interests: string[];
   trustScore: number;
-  platforms: {
-    name: string;
-    connected: boolean;
-    lastSynced?: string;
-  }[];
+  platforms: PlatformConnection[];
+}
+
+export interface PlatformConnection {
+  name: string;
+  connected: boolean;
+  lastSynced?: string;
+  handle?: string;
 }
 
 export interface MatchProfile extends User {
   bridgeName: string;
   bridgeAvatar: string;
-  reasoning: string;
-  intentions: IntentType[];
   sharedContext: string;
   compatibilityScore: number;
-  // Added missing properties required by various components
-  mutualFriends: string[];
-  pathExplanation: string;
-  interests: string[];
-  age?: number;
+  reasoning?: string;
+  intentions: IntentType[];
+  mutualFriends?: string[];
+  pathExplanation?: string;
 }
 
-export interface Conversation {
-  id: string;
-  matchId: string;
-  matchName: string;
-  matchAvatar: string;
-  lastMessage: string;
-  timestamp: string;
-  status: 'PENDING' | 'ACTIVE';
-  unread?: boolean;
-}
-
-// Added safety fields required by MatchDetails component
 export interface IntroIntelligence {
   reasoning: string;
   magic_script: string;
@@ -54,22 +44,28 @@ export interface IntroIntelligence {
   safety_check: string;
 }
 
-// Added Node and Link interfaces for SocialTree visualization
-export interface Node {
-  id: string;
-  name: string;
-  avatar: string;
-  type: 'user' | 'friend' | 'match';
-  degree: number;
-  intentions?: IntentType[];
-  strengthScore?: number;
-  x?: number;
-  y?: number;
+export interface GroundingSource {
+  title: string;
+  uri: string;
 }
 
-export interface Link {
-  source: string | Node;
-  target: string | Node;
-  strength: number;
-  recency: number;
+export interface SocialInsight {
+  text: string;
+  sources: GroundingSource[];
+}
+
+export interface MapInsight {
+  text: string;
+  places: GroundingSource[];
+}
+
+export interface Conversation {
+  id: string;
+  matchId: string;
+  matchName: string;
+  matchAvatar: string;
+  lastMessage: string;
+  timestamp: string;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  unread: boolean;
 }

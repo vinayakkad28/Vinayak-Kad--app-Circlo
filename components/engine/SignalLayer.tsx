@@ -1,78 +1,84 @@
 
 import React, { useState } from 'react';
-import { IntentType, MatchProfile } from '../../types';
-import { MOCK_ENGINE_MATCHES } from '../../constants';
+import { Stack, Typography, Section, Button } from '../design-system/Primitives';
+import { IntentType } from '../../types';
 
 interface SignalLayerProps {
   intent: IntentType;
-  onSubmit: (intro: MatchProfile) => void;
+  onSubmit: (context: string) => void;
 }
 
 const SignalLayer: React.FC<SignalLayerProps> = ({ intent, onSubmit }) => {
-  const [signals, setSignals] = useState({
-    context: '',
-    hope: ''
-  });
+  const [context, setContext] = useState('');
+  const [outcome, setOutcome] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleProcess = () => {
     setIsProcessing(true);
+    // Combine context and outcome for the engine
+    const fullSignal = `${context} | Desired Outcome: ${outcome}`;
     setTimeout(() => {
-      const bestMatch = MOCK_ENGINE_MATCHES.find(m => 
-        m.intentions.includes(intent) && 
-        (signals.context === '' || m.role.toLowerCase().includes(signals.context.toLowerCase()))
-      ) || MOCK_ENGINE_MATCHES[Math.floor(Math.random() * MOCK_ENGINE_MATCHES.length)];
-      
+      onSubmit(fullSignal);
       setIsProcessing(false);
-      onSubmit(bestMatch);
     }, 1500);
   };
 
-  const isComplete = signals.context.length > 2;
+  const isComplete = context.length > 1 && outcome.length > 2;
+
+  const getLabel = () => {
+    if (intent === 'ROMANTIC_SOUL') return 'What defines your type?';
+    if (intent === 'CASUAL_SPARK') return 'What is the vibe?';
+    return 'What is the topic?';
+  };
 
   return (
-    <div className="flex-1 flex flex-col p-12 animate-fade-in max-w-sm mx-auto justify-center">
-      <header className="mb-20">
-        <h2 className="text-4xl font-black tracking-tight text-white">Define the focus.</h2>
-      </header>
+    <Section className="flex-1 flex flex-col p-10 justify-center animate-fade-in">
+      <Stack gap={16}>
+        <Stack gap={4}>
+          <Typography.Heading>Signal clarity.</Typography.Heading>
+          <Typography.Subheading>The AI uses this to verify the bridge.</Typography.Subheading>
+        </Stack>
 
-      <div className="space-y-12 flex-1">
-        <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Context</label>
-          <input 
-            autoFocus
-            type="text"
-            placeholder="e.g. Systems design, Early-stage VC"
-            value={signals.context}
-            onChange={(e) => setSignals({...signals, context: e.target.value})}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-xl font-bold text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-700"
-          />
-        </div>
+        <Stack gap={10} className="flex-1">
+          <Stack gap={4}>
+            <Typography.Meta>{getLabel()}</Typography.Meta>
+            <input 
+              autoFocus
+              type="text"
+              placeholder="..."
+              value={context}
+              onChange={(e) => setContext(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-3xl p-6 text-xl font-bold text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-800 shadow-inner"
+            />
+          </Stack>
 
-        <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Outcome</label>
-          <input 
-            type="text"
-            placeholder="What are you hoping for?"
-            value={signals.hope}
-            onChange={(e) => setSignals({...signals, hope: e.target.value})}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 text-xl font-bold text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-700"
-          />
-        </div>
-      </div>
+          <Stack gap={4}>
+            <Typography.Meta>The Real Goal (Unfiltered)</Typography.Meta>
+            <textarea 
+              placeholder="Be direct. What do you actually want?"
+              value={outcome}
+              onChange={(e) => setOutcome(e.target.value)}
+              rows={3}
+              className="w-full bg-slate-950 border border-slate-800 rounded-3xl p-6 text-lg font-bold text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-800 shadow-inner resize-none"
+            />
+          </Stack>
+        </Stack>
 
-      <div className="pt-12">
-        <button 
-          onClick={handleProcess}
-          disabled={!isComplete || isProcessing}
-          className={`w-full py-7 rounded-[2rem] font-black text-xs uppercase tracking-widest transition-all shadow-2xl ${
-            isComplete ? 'bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95' : 'bg-slate-900 text-slate-700 cursor-not-allowed'
-          }`}
-        >
-          {isProcessing ? 'Verifying Paths...' : 'Find Connection'}
-        </button>
-      </div>
-    </div>
+        <Stack gap={6}>
+          <Button 
+            onClick={handleProcess}
+            disabled={!isComplete || isProcessing}
+            variant="secondary"
+            className="w-full py-8"
+          >
+            {isProcessing ? 'Syncing Trust Bridges...' : 'Identify the Path'}
+          </Button>
+          <Typography.Meta className="text-center opacity-30 px-8 leading-relaxed">
+            Privacy Vault Active. This text is processed locally and discarded.
+          </Typography.Meta>
+        </Stack>
+      </Stack>
+    </Section>
   );
 };
 

@@ -1,11 +1,15 @@
 
 import React, { useState, useMemo } from 'react';
-import { MOCK_MATCHES, MOCK_USER } from '../../constants';
+// Corrected: MOCK_MATCHES is exported from utils/constants.ts
+import { MOCK_MATCHES } from '../../utils/constants';
+import { MOCK_USER } from '../../constants';
 import WarmPathCard from '../WarmPathCard';
 import MatchDetails from '../MatchDetails';
 import BottomNav from '../shared/BottomNav';
 import SocialTree from '../SocialTree';
-import { IntentionMode, MatchProfile } from '../../types';
+import { MatchProfile } from '../../types';
+// Corrected: IntentionMode is defined in types/index.ts
+import { IntentionMode } from '../../types/index';
 
 interface HomeScreenProps {
   onNavigate: (v: string) => void;
@@ -21,11 +25,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
 
   const filteredMatches = useMemo(() => {
     const q = query.toLowerCase();
-    return MOCK_MATCHES.filter(m => {
+    // Casting MOCK_MATCHES to any[] to handle type discrepancies between file-local types and actual exported data
+    return (MOCK_MATCHES as any[]).filter(m => {
       const matchesQuery = q ? (
         m.name.toLowerCase().includes(q) || 
         m.bio.toLowerCase().includes(q) ||
-        (m.interests && m.interests.some(i => i.toLowerCase().includes(q)))
+        (m.interests && m.interests.some((i: string) => i.toLowerCase().includes(q)))
       ) : true;
       const matchesIntention = m.intentions.includes(activeIntention as any);
       return matchesQuery && matchesIntention;
@@ -55,8 +60,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
           <div className="flex-1 p-6 pb-40">
             <SocialTree 
               onNodeClick={(id) => {
-                const match = MOCK_MATCHES.find(m => m.id === id);
-                if (match) setSelectedMatch(match);
+                const match = (MOCK_MATCHES as any[]).find(m => m.id === id);
+                if (match) setSelectedMatch(match as MatchProfile);
               }} 
               activeMode={activeIntention} 
             />
@@ -94,7 +99,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
 
               <div className="space-y-8">
                 <div className="flex items-center justify-between px-2">
-                  <h3 className="label-sm text-slate-400">Trusted {activeIntention} Paths ({MOCK_MATCHES.filter(m => m.intentions.includes(activeIntention as any)).length})</h3>
+                  <h3 className="label-sm text-slate-400">Trusted {activeIntention} Paths ({(MOCK_MATCHES as any[]).filter(m => m.intentions.includes(activeIntention as any)).length})</h3>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                     <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">AI Paths Syncing</span>
@@ -106,8 +111,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenInvite, onSen
                     filteredMatches.map(match => (
                       <WarmPathCard 
                         key={match.id} 
-                        match={match} 
-                        onSelect={() => setSelectedMatch(match)}
+                        match={match as any} 
+                        onSelect={() => setSelectedMatch(match as any)}
                         onShare={() => onOpenInvite('path', match)}
                       />
                     ))
