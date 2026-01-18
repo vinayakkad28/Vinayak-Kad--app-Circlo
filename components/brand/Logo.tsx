@@ -16,35 +16,25 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className = '' }) => {
 
   return (
     <div className={`relative flex items-center justify-center ${sizes[size]} ${className}`}>
-      {/* Outer Glow */}
-      <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse-slow"></div>
-      
-      {/* The Intersecting Paths Logo */}
-      <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 fill-none">
-        <circle 
-          cx="40" cy="50" r="30" 
-          stroke="white" 
-          strokeWidth="8" 
-          strokeOpacity="0.1"
-        />
-        <circle 
-          cx="60" cy="50" r="30" 
-          stroke="white" 
-          strokeWidth="8" 
-          strokeOpacity="0.2"
-        />
-        {/* Core Intersect Node */}
-        <circle 
-          cx="50" cy="50" r="10" 
-          className="fill-indigo-500 animate-pulse"
-        />
-        {/* Directional Path Fragment */}
+      <svg 
+        viewBox="0 0 100 100" 
+        className="w-full h-full fill-none" 
+        stroke="currentColor" 
+        aria-hidden="true"
+      >
+        {/* Path 1: Originating from top-left area, sweeping toward a deliberate intersection */}
         <path 
-          d="M50 50 L75 25" 
-          stroke="white" 
-          strokeWidth="4" 
+          d="M 25,75 C 25,45 45,25 75,25" 
+          strokeWidth="3.5" 
           strokeLinecap="round"
-          className="opacity-50"
+          className="text-white opacity-40"
+        />
+        {/* Path 2: Originating from bottom-right area, converging at the meeting point with intentional asymmetry */}
+        <path 
+          d="M 45,85 C 75,85 85,65 85,35" 
+          strokeWidth="3.5" 
+          strokeLinecap="round"
+          className="text-white opacity-90"
         />
       </svg>
     </div>

@@ -161,6 +161,10 @@ export async function askCircloChat(message: string, useThinking: boolean = fals
   }
 }
 
+/**
+ * Nano banana powered image editing using Gemini 2.5 Flash Image.
+ * Allows users to perform complex image manipulations via text prompts.
+ */
 export async function editProfileImage(imageB64: string, editPrompt: string): Promise<string | null> {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -175,7 +179,7 @@ export async function editProfileImage(imageB64: string, editPrompt: string): Pr
               mimeType: 'image/png'
             }
           },
-          { text: `${editPrompt}. Return only the edited image in binary format.` }
+          { text: `${editPrompt}. Return only the modified image as a single part.` }
         ]
       }
     });
@@ -187,7 +191,7 @@ export async function editProfileImage(imageB64: string, editPrompt: string): Pr
     }
     return null;
   } catch (error) {
-    console.error("Image edit failed:", error);
+    console.error("Nano banana image edit failed:", error);
     return null;
   }
 }
