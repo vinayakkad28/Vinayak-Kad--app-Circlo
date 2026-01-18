@@ -8,13 +8,14 @@ interface AuthViewProps {
 }
 
 const AuthView: React.FC<AuthViewProps> = ({ onComplete }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    setLoading(true);
+  const handleSocialAuth = (platform: string) => {
+    setLoading(platform);
+    // Simulate OAuth handshake
     setTimeout(() => {
       onComplete();
-    }, 1200);
+    }, 1500);
   };
 
   return (
@@ -22,41 +23,53 @@ const AuthView: React.FC<AuthViewProps> = ({ onComplete }) => {
       <Stack gap={16}>
         <Stack gap={4} align="center">
           <Logo size="lg" />
-          <Typography.Heading className="text-center">Welcome.</Typography.Heading>
-          <Typography.Subheading className="text-center">Your private path begins here.</Typography.Subheading>
+          <Typography.Heading className="text-center">Start your path.</Typography.Heading>
+          <Typography.Subheading className="text-center">Connect your primary social node to build your trust graph.</Typography.Subheading>
         </Stack>
-
-        <Card variant="surface" className="p-8">
-          <Stack gap={6}>
-            <div className="space-y-4">
-              <input 
-                type="email" 
-                placeholder="Email address"
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-sm font-bold text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-700"
-              />
-              <input 
-                type="password" 
-                placeholder="Password"
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-sm font-bold text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-700"
-              />
-            </div>
-            <Button onClick={handleLogin} disabled={loading} className="w-full">
-              {loading ? 'Securing Vault...' : 'Enter the Circle'}
-            </Button>
-          </Stack>
-        </Card>
 
         <Stack gap={4}>
           <button 
-            onClick={handleLogin}
-            className="w-full py-5 flex items-center justify-center gap-3 bg-slate-900 border border-slate-800 rounded-3xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all"
+            onClick={() => handleSocialAuth('instagram')}
+            disabled={!!loading}
+            className="w-full py-6 flex items-center justify-between px-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-[2rem] text-sm font-black uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all group"
           >
-            <i className="fab fa-google opacity-50"></i>
+            <div className="flex items-center gap-4">
+              <i className="fab fa-instagram text-2xl"></i>
+              <span>Connect Instagram</span>
+            </div>
+            {loading === 'instagram' ? <i className="fas fa-circle-notch animate-spin"></i> : <i className="fas fa-chevron-right opacity-30 group-hover:opacity-100"></i>}
+          </button>
+
+          <button 
+            onClick={() => handleSocialAuth('facebook')}
+            disabled={!!loading}
+            className="w-full py-6 flex items-center justify-between px-8 bg-[#1877f2] rounded-[2rem] text-sm font-black uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <i className="fab fa-facebook text-2xl"></i>
+              <span>Connect Facebook</span>
+            </div>
+            {loading === 'facebook' ? <i className="fas fa-circle-notch animate-spin"></i> : <i className="fas fa-chevron-right opacity-30 group-hover:opacity-100"></i>}
+          </button>
+        </Stack>
+
+        <div className="relative py-4">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-900"></div></div>
+          <div className="relative flex justify-center text-[8px] uppercase font-black tracking-[0.3em] text-slate-700 bg-slate-950 px-4">Secure Identity Vault</div>
+        </div>
+
+        <Stack gap={6}>
+          <button 
+            onClick={() => handleSocialAuth('google')}
+            disabled={!!loading}
+            className="w-full py-5 flex items-center justify-center gap-3 bg-slate-900 border border-slate-800 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all text-slate-400"
+          >
+            <i className="fab fa-google"></i>
             Continue with Google
           </button>
           
           <Typography.Meta className="text-center opacity-30 px-6 leading-relaxed">
-            By continuing, you agree to our trust-first privacy philosophy.
+            Circlo uses zero-knowledge mapping. <br/>We never store your social credentials or private content.
           </Typography.Meta>
         </Stack>
       </Stack>
