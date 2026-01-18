@@ -19,6 +19,7 @@ export const storage = {
     const exists = current.find(r => r.matchId === match.id);
     if (exists) return;
 
+    // Fix: Added missing status property to satisfy Conversation type
     const newRequest: Conversation = {
       id: `conv-${Date.now()}`,
       matchId: match.id,
@@ -26,6 +27,7 @@ export const storage = {
       matchAvatar: match.avatar,
       lastMessage: script,
       timestamp: 'Just now',
+      status: 'PENDING',
       unread: true
     };
     localStorage.setItem(KEYS.INTRO_REQUESTS, JSON.stringify([newRequest, ...current]));

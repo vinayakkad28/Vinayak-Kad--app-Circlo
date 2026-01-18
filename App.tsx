@@ -27,14 +27,16 @@ const App: React.FC = () => {
   }, []);
 
   const handleStart = () => {
-    const initialUser = {
+    // Fix: Added missing platforms property to satisfy User type
+    const initialUser: User = {
       id: 'me',
       name: 'Alex Johnson',
       role: 'Product Designer',
       avatar: 'https://i.pravatar.cc/150?u=me',
       bio: 'Exploring systems of human connection.',
       location: 'SF / Remote',
-      trustScore: 92
+      trustScore: 92,
+      platforms: []
     };
     storage.saveUser(initialUser);
     setUser(initialUser);
