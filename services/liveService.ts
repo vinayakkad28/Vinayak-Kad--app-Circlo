@@ -1,14 +1,7 @@
 
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-let nextStartTime = 0;
-let inputAudioContext: AudioContext | null = null;
-let outputAudioContext: AudioContext | null = null;
-let outputNode: GainNode | null = null;
-let sources = new Set<AudioBufferSourceNode>();
-
+// The audio encoding and decoding logic follows Gemini Live API requirements.
 function encode(bytes: Uint8Array) {
   let binary = '';
   const len = bytes.byteLength;
@@ -50,21 +43,27 @@ async function decodeAudioData(
 export class CircloLiveSession {
   private session: any = null;
   private stream: MediaStream | null = null;
+  private inputAudioContext: AudioContext | null = null;
+  private outputAudioContext: AudioContext | null = null;
+  private nextStartTime = 0;
+  private sources = new Set<AudioBufferSourceNode>();
 
   async start(onTranscription: (text: string, type: 'input' | 'output') => void) {
-    inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-    outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    outputNode = outputAudioContext.createGain();
-    outputNode.connect(outputAudioContext.destination);
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    this.inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+    this.outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    const outputNode = this.outputAudioContext.createGain();
+    outputNode.connect(this.outputAudioContext.destination);
 
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    this.session = await ai.live.connect({
+    // Use a promise to handle the session connection as per guidelines to avoid race conditions.
+    const sessionPromise = ai.live.connect({
       model: 'gemini-2.5-flash-native-audio-preview-12-2025',
       callbacks: {
         onopen: () => {
-          const source = inputAudioContext!.createMediaStreamSource(this.stream!);
-          const scriptProcessor = inputAudioContext!.createScriptProcessor(4096, 1, 1);
+          const source = this.inputAudioContext!.createMediaStreamSource(this.stream!);
+          const scriptProcessor = this.inputAudioContext!.createScriptProcessor(4096, 1, 1);
           scriptProcessor.onaudioprocess = (e) => {
             const inputData = e.inputBuffer.getChannelData(0);
             const l = inputData.length;
@@ -76,12 +75,15 @@ export class CircloLiveSession {
               data: encode(new Uint8Array(int16.buffer)),
               mimeType: 'audio/pcm;rate=16000',
             };
-            this.session.sendRealtimeInput({ media: pcmBlob });
+            // Solely rely on sessionPromise resolves to send realtime input.
+            sessionPromise.then((session) => {
+              session.sendRealtimeInput({ media: pcmBlob });
+            });
           };
           source.connect(scriptProcessor);
-          scriptProcessor.connect(inputAudioContext!.destination);
+          scriptProcessor.connect(this.inputAudioContext!.destination);
         },
-        onmessage: async (message) => {
+        onmessage: async (message: LiveServerMessage) => {
           if (message.serverContent?.outputTranscription) {
             onTranscription(message.serverContent.outputTranscription.text, 'output');
           } else if (message.serverContent?.inputTranscription) {
@@ -89,21 +91,24 @@ export class CircloLiveSession {
           }
 
           const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-          if (base64EncodedAudioString) {
-            nextStartTime = Math.max(nextStartTime, outputAudioContext!.currentTime);
-            const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), outputAudioContext!, 24000, 1);
-            const sourceNode = outputAudioContext!.createBufferSource();
+          if (base64EncodedAudioString && this.outputAudioContext) {
+            this.nextStartTime = Math.max(this.nextStartTime, this.outputAudioContext.currentTime);
+            const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), this.outputAudioContext, 24000, 1);
+            const sourceNode = this.outputAudioContext.createBufferSource();
             sourceNode.buffer = audioBuffer;
-            sourceNode.connect(outputNode!);
-            sourceNode.start(nextStartTime);
-            nextStartTime += audioBuffer.duration;
-            sources.add(sourceNode);
+            sourceNode.connect(outputNode);
+            sourceNode.start(this.nextStartTime);
+            this.nextStartTime += audioBuffer.duration;
+            this.sources.add(sourceNode);
+            sourceNode.onended = () => this.sources.delete(sourceNode);
           }
 
           if (message.serverContent?.interrupted) {
-            for (const s of sources) s.stop();
-            sources.clear();
-            nextStartTime = 0;
+            for (const s of this.sources) {
+              try { s.stop(); } catch (e) {}
+            }
+            this.sources.clear();
+            this.nextStartTime = 0;
           }
         },
       },
@@ -115,12 +120,16 @@ export class CircloLiveSession {
         systemInstruction: "You are Circlo's live voice companion. Speak naturally and helpfully about connections."
       },
     });
+
+    this.session = await sessionPromise;
   }
 
   stop() {
     this.session?.close();
     this.stream?.getTracks().forEach(t => t.stop());
-    inputAudioContext?.close();
-    outputAudioContext?.close();
+    this.inputAudioContext?.close();
+    this.outputAudioContext?.close();
+    this.sources.forEach(s => { try { s.stop(); } catch (e) {} });
+    this.sources.clear();
   }
 }

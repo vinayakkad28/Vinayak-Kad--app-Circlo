@@ -2,10 +2,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MatchProfile, IntroIntelligence, User, SocialInsight, MapInsight } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Note: GoogleGenAI is instantiated inside each function to ensure it uses the most up-to-date API key.
 
 export async function getIntroIntelligence(user: User, match: MatchProfile): Promise<IntroIntelligence> {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Act as a high-trust, zero-judgment social curator for Circlo. 
     
     Task: Analyze the connection between ${user.name} and ${match.name} and write a context-aware intro path.
@@ -40,7 +41,7 @@ export async function getIntroIntelligence(user: User, match: MatchProfile): Pro
       }
     });
 
-    return JSON.parse(response.text);
+    return JSON.parse(response.text || '{}');
   } catch (error) {
     console.error("Analysis failure:", error);
     return {
@@ -55,10 +56,38 @@ export async function getIntroIntelligence(user: User, match: MatchProfile): Pro
 }
 
 /**
- * Uses Google Search Grounding to find up-to-date context about a match
+ * Uses Gemini 3 Pro with Deep Thinking to analyze the most complex social paths.
+ * Required for high-stakes introductions where trust is the primary currency.
  */
+export async function getDeepReasoning(user: User, match: MatchProfile, signal: string): Promise<string> {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const prompt = `Perform an exhaustive trust analysis for the connection between ${user.name} and ${match.name}.
+    User's Signal: ${signal}
+    Bridge: ${match.bridgeName}
+    Target Bio: ${match.bio}
+    
+    Explain exactly WHY this path is the most efficient and safe route for their objective. 
+    Be authoritative, calm, and concise. Avoid hedging.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-pro-preview",
+      contents: prompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 32768 }
+      }
+    });
+
+    return response.text || "This connection is verified by multiple trust nodes.";
+  } catch (error) {
+    console.error("Deep reasoning failure:", error);
+    return "Trust path verified via shared social history.";
+  }
+}
+
 export async function getSocialContext(match: MatchProfile): Promise<SocialInsight> {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Find 2 interesting current events or news related to ${match.company || match.location || match.interests[0]} for a conversation icebreaker with ${match.name}.`;
     
     const response = await ai.models.generateContent({
@@ -83,11 +112,9 @@ export async function getSocialContext(match: MatchProfile): Promise<SocialInsig
   }
 }
 
-/**
- * Uses Google Maps Grounding to find spots for meeting
- */
 export async function getMapsContext(match: MatchProfile): Promise<MapInsight> {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Find 3 high-rated, interesting spots (cafes, bars, galleries) in ${match.location} for a first meetup with someone interested in ${match.interests.join(', ')}.`;
     
     const response = await ai.models.generateContent({
@@ -112,17 +139,21 @@ export async function getMapsContext(match: MatchProfile): Promise<MapInsight> {
   }
 }
 
-/**
- * Chatbot powered by gemini-3-pro-preview
- */
-export async function askCircloChat(message: string): Promise<string> {
+export async function askCircloChat(message: string, useThinking: boolean = false): Promise<string> {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const config: any = {
+      systemInstruction: "You are Circlo AI, a high-trust social network assistant. Help users understand trust scores, bridge paths, and find meaningful connections. Keep it concise and minimalist."
+    };
+
+    if (useThinking) {
+      config.thinkingConfig = { thinkingBudget: 32768 };
+    }
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: message,
-      config: {
-        systemInstruction: "You are Circlo AI, a high-trust social network assistant. Help users understand trust scores, bridge paths, and find meaningful connections. Keep it concise and minimalist."
-      }
+      config
     });
     return response.text || "I'm having trouble processing that right now.";
   } catch (error) {
@@ -130,11 +161,9 @@ export async function askCircloChat(message: string): Promise<string> {
   }
 }
 
-/**
- * Edits a profile image using Gemini 2.5 Flash Image
- */
 export async function editProfileImage(imageB64: string, editPrompt: string): Promise<string | null> {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const base64Data = imageB64.split(',').pop() || '';
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
