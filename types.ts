@@ -1,16 +1,7 @@
 
-export type IntentType = 'MEET_NEW' | 'FIND_PEOPLE' | 'EXPLORE_GROUP' | 'CONVERSATION';
-export type IntentionMode = 'Dating' | 'Business' | 'Community' | 'Friendship';
-export type Platform = 'instagram' | 'facebook' | 'x' | 'tiktok' | 'linkedin' | 'snapchat' | 'Contacts';
-
-// Added IntroIntelligence to types to be accessible by components
-export interface IntroIntelligence {
-  reasoning: string;
-  magic_script: string;
-  timing_guidance: string;
-  safety_status: 'Green' | 'Amber' | 'Red';
-  safety_check: string;
-}
+export type IntentType = 'NEW_PEER' | 'BUILDER_CIRCLE' | 'MEANINGFUL_CONVO' | 'EXPLORE_NEW' | 'Dating' | 'Business' | 'Community' | 'Friendship';
+// Added IntentionMode as an alias for IntentType for component compatibility
+export type IntentionMode = IntentType;
 
 export interface User {
   id: string;
@@ -21,7 +12,6 @@ export interface User {
   bio: string;
   location: string;
   trustScore: number;
-  // Added platforms to User type
   platforms: {
     name: string;
     connected: boolean;
@@ -29,48 +19,18 @@ export interface User {
   }[];
 }
 
-export interface Node {
-  id: string;
-  name: string;
-  avatar: string;
-  type: 'user' | 'friend' | 'match';
-  degree: number;
-  intentions?: (IntentType | IntentionMode)[];
-  strengthScore?: number;
-  x?: number;
-  y?: number;
-}
-
-export interface Link {
-  source: string | Node;
-  target: string | Node;
-  strength: number;
-  recency: number;
-}
-
-export interface MatchProfile {
-  id: string;
-  name: string;
-  avatar: string;
-  role: string;
-  company?: string;
-  bio: string;
-  location: string;
-  trustScore: number;
+export interface MatchProfile extends User {
   bridgeName: string;
   bridgeAvatar: string;
   reasoning: string;
-  intentions: (IntentType | IntentionMode)[];
+  intentions: IntentType[];
   sharedContext: string;
   compatibilityScore: number;
-  // Extended fields for path visualization and bridge intel
+  // Added missing properties required by various components
+  mutualFriends: string[];
+  pathExplanation: string;
+  interests: string[];
   age?: number;
-  degree?: number;
-  pathStrengthScore?: number;
-  overallScore?: number;
-  mutualFriends?: string[];
-  pathExplanation?: string;
-  interests?: string[];
 }
 
 export interface Conversation {
@@ -81,11 +41,35 @@ export interface Conversation {
   lastMessage: string;
   timestamp: string;
   status: 'PENDING' | 'ACTIVE';
-  // Added unread to support messaging list indicators
   unread?: boolean;
 }
 
-export interface SyncState {
-  platforms: string[];
-  lastSynced: string | null;
+// Added safety fields required by MatchDetails component
+export interface IntroIntelligence {
+  reasoning: string;
+  magic_script: string;
+  timing_guidance: string;
+  confidence_statement: string;
+  safety_status: 'Green' | 'Amber' | 'Red';
+  safety_check: string;
+}
+
+// Added Node and Link interfaces for SocialTree visualization
+export interface Node {
+  id: string;
+  name: string;
+  avatar: string;
+  type: 'user' | 'friend' | 'match';
+  degree: number;
+  intentions?: IntentType[];
+  strengthScore?: number;
+  x?: number;
+  y?: number;
+}
+
+export interface Link {
+  source: string | Node;
+  target: string | Node;
+  strength: number;
+  recency: number;
 }

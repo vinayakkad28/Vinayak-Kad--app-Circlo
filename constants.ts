@@ -13,7 +13,8 @@ const bridgePool = [
 ];
 
 export const generateEngineMatches = (): MatchProfile[] => {
-  const intents: IntentType[] = ['MEET_NEW', 'FIND_PEOPLE', 'EXPLORE_GROUP', 'CONVERSATION'];
+  // Fixed: Use valid IntentType values
+  const intents: IntentType[] = ['NEW_PEER', 'BUILDER_CIRCLE', 'MEANINGFUL_CONVO', 'EXPLORE_NEW'];
   
   return Array.from({ length: 1000 }).map((_, i) => {
     const firstName = firstNames[i % firstNames.length];
@@ -39,7 +40,9 @@ export const generateEngineMatches = (): MatchProfile[] => {
       compatibilityScore: 75 + (i % 25),
       mutualFriends: [`b-${i % bridgePool.length}`],
       pathExplanation: `${bridge.name} and ${firstName} were colleagues at ${company}.`,
-      interests: ['Systems Design', 'Deep Tech']
+      interests: ['Systems Design', 'Deep Tech'],
+      // Fixed: Added missing platforms property to match MatchProfile (which extends User)
+      platforms: []
     };
   });
 };
