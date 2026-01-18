@@ -8,7 +8,6 @@ export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<{ role: 'user' | 'bot'; text: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [useDeepThink, setUseDeepThink] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +20,7 @@ export const ChatBot: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
     setLoading(true);
-    const botResponse = await askCircloChat(userMsg, useDeepThink);
+    const botResponse = await askCircloChat(userMsg);
     setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
     setLoading(false);
   };
@@ -29,81 +28,37 @@ export const ChatBot: React.FC = () => {
   return (
     <div className="fixed bottom-32 right-8 z-[100]">
       {isOpen ? (
-        <Card variant="glass" className="w-80 h-96 flex flex-col p-4 shadow-3xl animate-fade-in border-indigo-500/20">
+        <Card variant="glass" className="w-80 h-96 flex flex-col p-4 shadow-3xl animate-fade-in">
           <div className="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
-            <Stack gap={1}>
-              <Typography.Meta>Vault Assistant</Typography.Meta>
-              <div className="flex items-center gap-2">
-                <div className={`w-1 h-1 rounded-full ${loading ? 'bg-indigo-500 animate-pulse' : 'bg-slate-700'}`}></div>
-                <span className="text-[8px] font-black uppercase text-slate-500">Pro Connected</span>
-              </div>
-            </Stack>
-            <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white transition-colors"><i className="fas fa-times"></i></button>
+            <Typography.Meta>Vault Assistant</Typography.Meta>
+            <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white"><i className="fas fa-times"></i></button>
           </div>
-          
-          <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 no-scrollbar mb-4">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-10 opacity-30 text-center space-y-4">
-                <i className="fas fa-sparkles text-3xl"></i>
-                <Typography.Body className="italic">How can I assist your social graph today?</Typography.Body>
-              </div>
-            )}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 no-scrollbar mb-4">
+            {messages.length === 0 && <Typography.Body className="text-center italic opacity-40 py-10">How can I assist your social graph today?</Typography.Body>}
             {messages.map((m, i) => (
-              <div key={i} className={`p-4 rounded-3xl text-[11px] font-medium leading-relaxed border ${
-                m.role === 'user' 
-                  ? 'bg-indigo-600/10 border-indigo-500/10 ml-8 text-right text-slate-200' 
-                  : 'bg-slate-900/50 border-slate-800 mr-8 text-left text-slate-300'
-              }`}>
+              <div key={i} className={`p-3 rounded-2xl text-[11px] font-medium leading-relaxed ${m.role === 'user' ? 'bg-indigo-600/20 ml-8 text-right' : 'bg-slate-800/50 mr-8 text-left'}`}>
                 {m.text}
               </div>
             ))}
-            {loading && (
-              <div className="flex items-center gap-2 mr-8">
-                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
-                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400 ml-2">
-                  {useDeepThink ? 'Thinking Mode Active...' : 'Syncing Path...'}
-                </span>
-              </div>
-            )}
+            {loading && <div className="animate-pulse text-[10px] text-indigo-400">Syncing Pro reasoning...</div>}
           </div>
-
-          <Stack gap={3}>
-            <div className="flex items-center justify-between px-2">
-              <button 
-                onClick={() => setUseDeepThink(!useDeepThink)}
-                className={`flex items-center gap-2 transition-all ${useDeepThink ? 'text-indigo-400' : 'text-slate-600'}`}
-              >
-                <i className={`fas fa-brain text-[10px] ${useDeepThink ? 'animate-pulse' : ''}`}></i>
-                <span className="text-[9px] font-black uppercase tracking-widest">Deep Thinking</span>
-              </button>
-              <Typography.Meta className="opacity-20">Private Node</Typography.Meta>
-            </div>
-            <div className="flex gap-2">
-              <input 
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSend()}
-                placeholder="Ask about paths or trust..."
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-indigo-500/50 transition-all"
-              />
-              <button 
-                onClick={handleSend} 
-                disabled={loading || !input.trim()}
-                className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-500 disabled:opacity-20 transition-all active:scale-90"
-              >
-                <i className="fas fa-paper-plane text-[10px]"></i>
-              </button>
-            </div>
-          </Stack>
+          <div className="flex gap-2">
+            <input 
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              placeholder="Ask anything..."
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white outline-none"
+            />
+            <button onClick={handleSend} className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><i className="fas fa-paper-plane text-[10px]"></i></button>
+          </div>
         </Card>
       ) : (
         <button 
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-2xl hover:scale-105 active:scale-95 transition-all group"
+          className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
         >
-          <i className="fas fa-sparkles group-hover:animate-pulse"></i>
+          <i className="fas fa-sparkles"></i>
         </button>
       )}
     </div>

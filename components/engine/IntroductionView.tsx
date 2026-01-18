@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MatchProfile, IntroIntelligence, SocialInsight, MapInsight } from '../../types';
-import { getIntroIntelligence, getSocialContext, getMapsContext, getDeepReasoning } from '../../services/geminiService';
+import { getIntroIntelligence, getSocialContext, getMapsContext } from '../../services/geminiService';
 import { MOCK_USER } from '../../constants';
 import { Stack, Typography, Section, Button, Card } from '../design-system/Primitives';
 
@@ -16,8 +16,6 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
   const [intel, setIntel] = useState<IntroIntelligence | null>(null);
   const [insight, setInsight] = useState<SocialInsight | null>(null);
   const [mapInsight, setMapInsight] = useState<MapInsight | null>(null);
-  const [deepReasoning, setDeepReasoning] = useState<string | null>(null);
-  const [isThinking, setIsThinking] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -35,19 +33,12 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
     fetchAll();
   }, [intro]);
 
-  const handleDeepAnalysis = async () => {
-    setIsThinking(true);
-    const reasoning = await getDeepReasoning(MOCK_USER, intro, "High-trust professional introduction request.");
-    setDeepReasoning(reasoning);
-    setIsThinking(false);
-  };
-
   return (
     <Section className="flex-1 flex flex-col p-8 animate-fade-in overflow-y-auto no-scrollbar pb-40">
       <Stack gap={12}>
         <header className="flex flex-col items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          <Typography.Meta className="text-emerald-500">Path Synchronized</Typography.Meta>
+          <Typography.Meta className="text-emerald-500">Node Synchronized</Typography.Meta>
           <Typography.Heading className="text-center">The Warm Path.</Typography.Heading>
         </header>
 
@@ -65,7 +56,7 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
                 alt="" 
               />
               <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-indigo-600 rounded-full text-[8px] font-black uppercase tracking-widest text-white shadow-xl z-20 whitespace-nowrap">
-                {intro.compatibilityScore}% Strength
+                {intro.compatibilityScore}% Synergy
               </div>
             </div>
 
@@ -100,36 +91,22 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
           <Stack gap={10}>
             {/* Intel Section */}
             <Stack gap={6}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-px h-8 bg-indigo-500/30"></div>
-                  <Typography.Meta>Introduction Logic</Typography.Meta>
-                </div>
-                {!deepReasoning && (
-                  <button 
-                    onClick={handleDeepAnalysis} 
-                    disabled={isThinking}
-                    className="text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-all flex items-center gap-2"
-                  >
-                    {isThinking ? 'Deep Thinking...' : 'Analyze Deep Path'}
-                    <i className="fas fa-sparkles text-[10px]"></i>
-                  </button>
-                )}
+              <div className="flex items-center gap-3">
+                <div className="w-px h-8 bg-indigo-500/30"></div>
+                <Typography.Meta>Identity Intelligence</Typography.Meta>
               </div>
               
-              <Card variant="glass" className="relative group overflow-hidden">
+              <Card variant="glass" className="relative group">
                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                   <i className="fas fa-brain text-5xl"></i>
                 </div>
                 <Stack gap={4}>
                   <Typography.Body className="text-white text-md font-bold leading-tight">
-                    {deepReasoning || intel?.reasoning}
+                    {intel?.reasoning}
                   </Typography.Body>
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                    <Typography.Meta className="text-emerald-500/80">
-                      {isThinking ? 'Pro Thinking Active' : (deepReasoning ? 'Deep Analysis Complete' : intel?.confidence_statement)}
-                    </Typography.Meta>
+                    <Typography.Meta className="text-emerald-500/80">{intel?.confidence_statement}</Typography.Meta>
                   </div>
                 </Stack>
               </Card>
@@ -139,7 +116,7 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
             <div className="grid grid-cols-1 gap-6">
               {insight && insight.sources.length > 0 && (
                 <Stack gap={4}>
-                  <Typography.Meta>Social Context</Typography.Meta>
+                  <Typography.Meta>Live Pulse Grounding</Typography.Meta>
                   <Card variant="dark-glass" className="p-6">
                     <Typography.Body className="text-slate-300 text-xs mb-4 leading-relaxed">{insight.text}</Typography.Body>
                     <div className="flex flex-wrap gap-3">
@@ -155,7 +132,7 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
 
               {mapInsight && mapInsight.places.length > 0 && (
                 <Stack gap={4}>
-                  <Typography.Meta>Meeting Spots</Typography.Meta>
+                  <Typography.Meta>Spatial Grounding</Typography.Meta>
                   <Card variant="dark-glass" className="p-6">
                     <Typography.Body className="text-slate-300 text-xs mb-4 leading-relaxed">{mapInsight.text}</Typography.Body>
                     <div className="space-y-2">
@@ -202,7 +179,7 @@ const IntroductionView: React.FC<IntroductionViewProps> = ({ intro, onAction, on
           className="mx-auto mt-12 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 hover:text-white transition-all flex items-center gap-4 group"
         >
           <div className="w-8 h-px bg-slate-800 group-hover:bg-indigo-500 transition-all"></div>
-          Back to Intro Engine
+          Explore the Graph
           <div className="w-8 h-px bg-slate-800 group-hover:bg-indigo-500 transition-all"></div>
         </button>
       </Stack>
